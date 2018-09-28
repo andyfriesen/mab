@@ -159,11 +159,11 @@ define_parser!(ParseExpressionAtPrecedence, Expression<'state>, |this: &ParseExp
         let (next_state, atom_rhs) = ParseExpressionAtPrecedence(next_min_precedence).parse(next_state)?;
         state = next_state;
 
-        atom_lhs = Expression::BinaryOp(BinaryOp {
+        atom_lhs = Expression::BinaryOp{id: gen_id(), value: BinaryOp {
             operator,
             left: Box::new(atom_lhs),
             right: Box::new(atom_rhs),
-        });
+        }};
     }
 
     Ok((state, atom_lhs))
@@ -192,10 +192,10 @@ define_parser!(ParseUnaryExpression, Expression<'state>, |_, state| {
     let (state, operator) = ParseUnaryOp.parse(state)?;
     let (state, argument) = ParseExpressionAtPrecedence(operator.precedence()).parse(state)?;
 
-    Ok((state, Expression::UnaryOp(UnaryOp {
+    Ok((state, Expression::UnaryOp{id: gen_id(), value: UnaryOp {
         operator,
         argument: Box::new(argument),
-    })))
+    }}))
 });
 
 struct ParseParenExpression;
@@ -204,20 +204,19 @@ define_parser!(ParseParenExpression, Expression<'state>, |_, state| {
     let (state, expression) = ParseExpression.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
 
-    Ok((state, Expression::ParenExpression(Box::new(expression))))
+    Ok((state, Expression::ParenExpression{id: gen_id(), value: Box::new(expression)}))
 });
 
 struct ParseValue;
 define_parser!(ParseValue, Expression<'state>, |_, state| {
     parse_first_of!(state, {
-        ParseNumber => Expression::Number,
-        ParseFunctionCall => Expression::FunctionCall,
-        ParseIdentifier => Expression::Name,
-        ParseTableLiteral => Expression::Table,
-        ParseBoolean => Expression::Bool,
-        // Hack: parse_first_of! cannot handle unit values
-        ParseNil => |_| Expression::Nil,
-        ParseString => Expression::String,
+        ParseNumber => |v| Expression::Number{id: gen_id(), value: v},
+        ParseFunctionCall => |v| Expression::FunctionCall{id: gen_id(), value: v},
+        ParseIdentifier => |v| Expression::Name{id: gen_id(), value: v},
+        ParseTableLiteral => |v| Expression::Table{id: gen_id(), value: v},
+        ParseBoolean => |v| Expression::Bool{id: gen_id(), value: v},
+        ParseNil => |_| Expression::Nil{id: gen_id()},
+        ParseString => |v| Expression::String{id: gen_id(), value: v},
     })
 });
 
@@ -270,7 +269,7 @@ define_parser!(ParseFunctionCall, FunctionCall<'state>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
 
     Ok((state, FunctionCall {
-        name_expression: Box::new(Expression::Name(name)),
+        name_expression: Box::new(Expression::Name{id: gen_id(), value: name}),
         arguments: expressions,
     }))
 });

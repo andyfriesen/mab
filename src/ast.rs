@@ -1,6 +1,18 @@
 use std::borrow::Cow;
 use tokenizer::StringLiteral;
 
+pub type Id = u32;
+
+static mut NEXT_ID: Id = 1;
+
+pub fn gen_id() -> Id {
+    unsafe {
+        let res = NEXT_ID;
+        NEXT_ID += 1;
+        res
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum UnaryOpKind {
     Negate, // -
@@ -143,18 +155,17 @@ pub struct FunctionDeclaration<'a> {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Expression<'a> {
-    Nil,
-    Bool(bool),
-    #[serde(borrow)]
-    Number(Cow<'a, str>),
-    String(StringLiteral<'a>),
-    VarArg,
-    Table(TableLiteral<'a>),
-    FunctionCall(FunctionCall<'a>),
-    Name(Cow<'a, str>),
-    ParenExpression(Box<Expression<'a>>),
-    UnaryOp(UnaryOp<'a>),
-    BinaryOp(BinaryOp<'a>),
+    Nil{id: Id},
+    Bool{id: Id, value: bool},
+    Number{id: Id, #[serde(borrow)] value: Cow<'a, str>},
+    String{id: Id, value: StringLiteral<'a>},
+    VarArg{id: Id},
+    Table{id: Id, value: TableLiteral<'a>},
+    FunctionCall{id: Id, value: FunctionCall<'a>},
+    Name{id: Id, value: Cow<'a, str>},
+    ParenExpression{id: Id, value: Box<Expression<'a>>},
+    UnaryOp{id: Id, value: UnaryOp<'a>},
+    BinaryOp{id: Id, value: BinaryOp<'a>},
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
