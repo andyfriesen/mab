@@ -89,14 +89,14 @@ define_parser!(ParseChunk, Chunk<'state>, |_, state| {
 struct ParseStatement;
 define_parser!(ParseStatement, Statement<'state>, |_, state| {
     parse_first_of!(state, {
-        ParseLocalAssignment => Statement::LocalAssignment,
-        ParseFunctionCall => Statement::FunctionCall,
-        ParseNumericFor => Statement::NumericFor,
-        ParseGenericFor => Statement::GenericFor,
-        ParseIfStatement => Statement::IfStatement,
-        ParseWhileLoop => Statement::WhileLoop,
-        ParseRepeatLoop => Statement::RepeatLoop,
-        ParseFunctionDeclaration => Statement::FunctionDeclaration,
+        ParseLocalAssignment => |r| Statement::LocalAssignment {id: gen_id(), value: r},
+        ParseFunctionCall => |r| Statement::FunctionCall {id: gen_id(), value: r},
+        ParseNumericFor => |r| Statement::NumericFor {id: gen_id(), value: r},
+        ParseGenericFor => |r| Statement::GenericFor {id: gen_id(), value: r},
+        ParseIfStatement => |r| Statement::IfStatement {id: gen_id(), value: r},
+        ParseWhileLoop => |r| Statement::WhileLoop {id: gen_id(), value: r},
+        ParseRepeatLoop => |r| Statement::RepeatLoop {id: gen_id(), value: r},
+        ParseFunctionDeclaration => |r| Statement::FunctionDeclaration {id: gen_id(), value: r},
     })
 });
 

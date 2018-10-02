@@ -13,6 +13,10 @@ pub fn gen_id() -> Id {
     }
 }
 
+trait HasId {
+    fn id(&self) -> Id;
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum UnaryOpKind {
     Negate, // -
@@ -168,6 +172,24 @@ pub enum Expression<'a> {
     BinaryOp{id: Id, value: BinaryOp<'a>},
 }
 
+impl <'a> HasId for Expression<'a> {
+    fn id(&self) -> Id {
+        *match self {
+            Expression::Nil{id} => id,
+            Expression::Bool{id, value: _} => id,
+            Expression::Number{id, value: _} => id,
+            Expression::String{id, value: _} => id,
+            Expression::VarArg{id} => id,
+            Expression::Table{id, value: _} => id,
+            Expression::FunctionCall{id, value: _} => id,
+            Expression::Name{id, value: _} => id,
+            Expression::ParenExpression{id, value: _} => id,
+            Expression::UnaryOp{id, value: _} => id,
+            Expression::BinaryOp{id, value: _} => id,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TableKey<'a> {
     #[serde(borrow)]
@@ -201,16 +223,32 @@ pub struct TableLiteral<'a> {
 //     local namelist [‘=’ explist]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Statement<'a> {
-    #[serde(borrow)]
-    Assignment(Assignment<'a>),
-    LocalAssignment(LocalAssignment<'a>),
-    FunctionCall(FunctionCall<'a>),
-    NumericFor(NumericFor<'a>),
-    GenericFor(GenericFor<'a>),
-    IfStatement(IfStatement<'a>),
-    WhileLoop(WhileLoop<'a>),
-    RepeatLoop(RepeatLoop<'a>),
-    FunctionDeclaration(FunctionDeclaration<'a>),
+    // #[serde(borrow)]
+    Assignment{id: Id, #[serde(borrow)] value: Assignment<'a>},
+    LocalAssignment{id: Id, value: LocalAssignment<'a>},
+    FunctionCall{id: Id, value: FunctionCall<'a>},
+    NumericFor{id: Id, value: NumericFor<'a>},
+    GenericFor{id: Id, value: GenericFor<'a>},
+    IfStatement{id: Id, value: IfStatement<'a>},
+    WhileLoop{id: Id, value: WhileLoop<'a>},
+    RepeatLoop{id: Id, value: RepeatLoop<'a>},
+    FunctionDeclaration{id: Id, value: FunctionDeclaration<'a>},
+}
+
+impl<'a> HasId for Statement<'a> {
+    fn id(&self) -> Id {
+        *match self {
+            Statement::Assignment {id, value: _} => id,
+            Statement::LocalAssignment {id, value: _} => id,
+            Statement::FunctionCall {id, value: _} => id,
+            Statement::NumericFor {id, value: _} => id,
+            Statement::GenericFor {id, value: _} => id,
+            Statement::IfStatement {id, value: _} => id,
+            Statement::WhileLoop {id, value: _} => id,
+            Statement::RepeatLoop {id, value: _} => id,
+            Statement::FunctionDeclaration {id, value: _} => id,
+        }
+    }
 }
 
 // chunk ::= block
