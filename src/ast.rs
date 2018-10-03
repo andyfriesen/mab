@@ -1,15 +1,14 @@
 use std::borrow::Cow;
 use tokenizer::StringLiteral;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
-pub type Id = u32;
+pub type Id = usize;
 
-static mut NEXT_ID: Id = 1;
+static mut NEXT_ID: AtomicUsize = AtomicUsize::new(1);
 
 pub fn gen_id() -> Id {
     unsafe {
-        let res = NEXT_ID;
-        NEXT_ID += 1;
-        res
+        NEXT_ID.fetch_add(1, Ordering::SeqCst)
     }
 }
 
@@ -176,16 +175,16 @@ impl <'a> HasId for Expression<'a> {
     fn id(&self) -> Id {
         *match self {
             Expression::Nil{id} => id,
-            Expression::Bool{id, value: _} => id,
-            Expression::Number{id, value: _} => id,
-            Expression::String{id, value: _} => id,
+            Expression::Bool{id, ..} => id,
+            Expression::Number{id, ..} => id,
+            Expression::String{id, ..} => id,
             Expression::VarArg{id} => id,
-            Expression::Table{id, value: _} => id,
-            Expression::FunctionCall{id, value: _} => id,
-            Expression::Name{id, value: _} => id,
-            Expression::ParenExpression{id, value: _} => id,
-            Expression::UnaryOp{id, value: _} => id,
-            Expression::BinaryOp{id, value: _} => id,
+            Expression::Table{id, ..} => id,
+            Expression::FunctionCall{id, ..} => id,
+            Expression::Name{id, ..} => id,
+            Expression::ParenExpression{id, ..} => id,
+            Expression::UnaryOp{id, ..} => id,
+            Expression::BinaryOp{id, ..} => id,
         }
     }
 }
@@ -238,15 +237,15 @@ pub enum Statement<'a> {
 impl<'a> HasId for Statement<'a> {
     fn id(&self) -> Id {
         *match self {
-            Statement::Assignment {id, value: _} => id,
-            Statement::LocalAssignment {id, value: _} => id,
-            Statement::FunctionCall {id, value: _} => id,
-            Statement::NumericFor {id, value: _} => id,
-            Statement::GenericFor {id, value: _} => id,
-            Statement::IfStatement {id, value: _} => id,
-            Statement::WhileLoop {id, value: _} => id,
-            Statement::RepeatLoop {id, value: _} => id,
-            Statement::FunctionDeclaration {id, value: _} => id,
+            Statement::Assignment {id, ..} => id,
+            Statement::LocalAssignment {id, ..} => id,
+            Statement::FunctionCall {id, ..} => id,
+            Statement::NumericFor {id, ..} => id,
+            Statement::GenericFor {id, ..} => id,
+            Statement::IfStatement {id, ..} => id,
+            Statement::WhileLoop {id, ..} => id,
+            Statement::RepeatLoop {id, ..} => id,
+            Statement::FunctionDeclaration {id, ..} => id,
         }
     }
 }
